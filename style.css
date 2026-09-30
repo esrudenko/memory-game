@@ -123,8 +123,8 @@ button {
   }
 
   .new_game_btn:hover {
-  background: #d94638;
-  border-color: #d94638;
+    background: #d94638;
+    border-color: #d94638;
   }
 }
 
@@ -195,7 +195,7 @@ button {
 }
 
 @media (hover: hover) {
-    .card:hover {
+  .card:hover {
     transform: translateY(-2px);
   }
 }
@@ -242,10 +242,15 @@ button {
   font-weight: 800;
 }
 
-@media (max-height: 620px) {
+@media (max-width: 600px) {
   .header_wrapper {
     flex-direction: column;
     gap: 8px;
+  }
+}
+
+@media (max-height: 600px) {
+  .header_wrapper {
     padding-block: 8px;
   }
 
