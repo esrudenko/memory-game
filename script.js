@@ -1,3 +1,5 @@
+import { cards } from "./data.js";
+
 // CREATE STRUCTURE
 //header
 const header = createElement("header", "header_wrapper");
@@ -55,15 +57,6 @@ main.append(mainHeader, gameBoard);
 mainHeader.append(leaveLeftImg, mainHeaderContent, leaveRightImg);
 mainHeaderContent.append(mainHeaderTitle, mainHeaderText);
 
-for (let i = 0; i < 16; i++) {
-  const card = createElement("div", "card");
-  gameBoard.append(card);
-  const cardImg = createElement("img", "card_img");
-  card.append(cardImg);
-  cardImg.src = "./img/card-back.png";
-  cardImg.alt = "";
-}
-
 //footer
 const footer = createElement("footer", "footer_wrapper");
 
@@ -97,3 +90,53 @@ function createElement(tag, className, text) {
 
   return element;
 }
+
+//CREATE RANDOM CARDS
+let deck = [];
+
+function createDeck() {
+  cards.forEach(card => {
+    deck.push(card);
+    deck.push(card);
+  })
+}
+
+function shuffle(array) {
+
+  let m = array.length, t, i;
+  while (m) {
+    i = Math.floor(Math.random() * m--);
+    t = array[m];
+    array[m] = array[i];
+    array[i] = t;
+  }
+}
+
+createDeck();
+shuffle(deck);
+
+//RENDER CARDS
+function renderCards(deck) {
+  for (let i = 0; i < deck.length; i++) {
+    const card = createElement("div", "card");
+    const cardInner = createElement("div", "card_inner");
+    const cardFront = createElement("div", "card_front");
+    const cardFrontImg = createElement("img", "card_front_img");
+    const cardBack = createElement("div", "card_back");
+    const cardBackImg = createElement("img", "card_back_img");
+
+    gameBoard.append(card);
+    card.append(cardInner);
+    cardInner.append(cardFront, cardBack);
+    cardFront.append(cardFrontImg);
+    cardBack.append(cardBackImg);
+
+    card.dataset.id = deck[i].id;
+    cardFrontImg.src = deck[i].img;
+    cardFrontImg.alt = deck[i].alt;
+    cardBackImg.src = "./img/card-back.png";
+    cardBackImg.alt = "";
+  }
+}
+
+renderCards(deck);

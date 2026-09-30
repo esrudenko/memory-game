@@ -156,7 +156,7 @@ button {
 
 .leave_left_img,
 .leave_right_img {
-  width: clamp(28px, 8vw, 120px);
+  width: clamp(60px, 8vw, 120px);
   height: auto;
 }
 
@@ -189,23 +189,60 @@ button {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  border-radius: clamp(8px, 1vw, 14px);
-  transition: all 0.3s ease;
+  perspective: 1000px;
   cursor: pointer;
+}
+
+.card_inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s ease;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+.card_front,
+.card_back {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: clamp(8px, 1vw, 14px);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.card_back {
+  transform: rotateY(0deg);
+}
+
+.card_front {
+  background: var(--color-cream);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-soft);
+  transform: rotateY(180deg);
+}
+
+.card_front_img,
+.card_back_img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.card_back_img {
+  transform: scale(1.2);
+}
+
+.card.is-flipped .card_inner {
+  transform: rotateY(180deg);
 }
 
 @media (hover: hover) {
   .card:hover {
     transform: translateY(-2px);
   }
-}
-
-.card_img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  transform: scale(1.2);
 }
 
 /* footer */
