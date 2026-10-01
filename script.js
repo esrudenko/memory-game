@@ -1,5 +1,11 @@
 import { cards } from "./data.js";
 
+let firstCard = null;
+let secondCard = null;
+let isBoardLocked = false;
+let moves = 0;
+let pairs = 0;
+
 // CREATE STRUCTURE
 //header
 const header = createElement("header", "header_wrapper");
@@ -17,7 +23,8 @@ const leaderboardName = createElement(
   "leaderboard_name",
   "Leaderboard",
 );
-
+newGameBtn.type = "button";
+leaderboardBtn.type = "button";
 logoImg.src = "./img/logo-orange.png";
 logoImg.alt = "Fruit Match";
 trophyImg.src = "./img/leaderboard-trophy.png";
@@ -27,6 +34,8 @@ header.append(logoWrapper, headerBtnsWrapper);
 logoWrapper.append(logoImg, gameName);
 headerBtnsWrapper.append(newGameBtn, leaderboardBtn);
 leaderboardBtn.append(trophyImg, leaderboardName);
+
+newGameBtn.addEventListener("click", startNewGame);
 
 //main
 const main = createElement("main", "main_wrapper");
@@ -66,7 +75,7 @@ const movesValue = createElement("p", "stat_value", "00");
 
 const pairsBox = createElement("div", "stat_item");
 const pairsLabel = createElement("p", "stat_label", "PAIRS");
-const pairsValue = createElement("p", "stat_value", "0 / 0");
+const pairsValue = createElement("p", "stat_value", "0 / 8");
 
 movesValue.id = "moves_value";
 pairsValue.id = "pairs_value";
@@ -75,7 +84,44 @@ movesBox.append(movesLabel, movesValue);
 pairsBox.append(pairsLabel, pairsValue);
 footer.append(movesBox, pairsBox);
 
-document.body.append(header, main, footer);
+//modal
+const modalOverlay = createElement("div", "modal_overlay");
+const modalContainer = createElement("div", "modal_container");
+const closeModalBtn = createElement("button", "close_modal_btn", "×");
+const trophyModalImg = createElement("img", "trophy_modal_img");
+const modalTitle = createElement("h1", "modal_title", "You found all pairs!");
+const modalText = createElement(
+  "h1",
+  "modal_text",
+  "You completed the game in 0 moves!",
+);
+const modalBtns = createElement("div", "modal_btns");
+const newGameBtnModal = createElement(
+  "button",
+  "new_game_btn_modal",
+  "New Game",
+);
+const closeBtnModal = createElement("button", "close_btn_modal", "Close");
+
+closeModalBtn.type = "button";
+closeBtnModal.type = "button";
+closeModalBtn.setAttribute("aria-label", "Close window");
+trophyModalImg.src = "./img/trophy-with-fruits.png";
+trophyModalImg.alt =
+  "Golden trophy with a star, surrounded by glowing fruit icons.";
+newGameBtnModal.type = "button";
+
+modalOverlay.append(modalContainer);
+modalContainer.append(
+  closeModalBtn,
+  trophyModalImg,
+  modalTitle,
+  modalText,
+  modalBtns,
+);
+modalBtns.append(newGameBtnModal, closeBtnModal);
+
+document.body.append(header, main, footer, modalOverlay);
 
 function createElement(tag, className, text) {
   const element = document.createElement(tag);
@@ -138,15 +184,11 @@ function renderCards(deck) {
     cardBackImg.src = "./img/card-back.png";
     cardBackImg.alt = "";
 
-    card.addEventListener("click", flipCard)
+    card.addEventListener("click", flipCard);
   }
 }
 
 renderCards(deck);
-
-let firstCard = null;
-let secondCard = null;
-let isBoardLocked = false;
 
 function flipCard(e) {
   const clickedCard = e.target.closest(".card");
@@ -160,12 +202,18 @@ function flipCard(e) {
     clickedCard.classList.add("is-flipped");
 
     if (secondCard.dataset.id === firstCard.dataset.id) {
-        firstCard = null;
-        secondCard = null;
-        isBoardLocked = false;
-        checkGameCompletion();
+      firstCard = null;
+      secondCard = null;
+      isBoardLocked = false;
+      checkGameCompletion();
+      moves++;
+      document.querySelector("#moves_value").textContent = `${moves}`;
+      pairs++;
+      document.querySelector("#pairs_value").textContent = `${pairs} / 8`;
     } else {
       isBoardLocked = true;
+      moves++;
+      document.querySelector("#moves_value").textContent = `${moves}`;
       setTimeout(() => {
         firstCard.classList.remove("is-flipped");
         secondCard.classList.remove("is-flipped");
@@ -176,11 +224,44 @@ function flipCard(e) {
     }
   }
 }
+
 const allCards = document.querySelectorAll(".card");
 
-function checkGameCompletion() {
-    if ([...allCards].every((card) => card.classList.contains("is-flipped"))) {
-      alert("finish!!!")
-    } else return;
+//modal
+modalOverlay.addEventListener("click", (e) => {
+  if (!e.target.closest(".modal_container")) {
+    closeModal();
   }
+  if (e.target.closest(".close_modal_btn")) {
+    closeModal();
+  }
+  if (e.target.closest(".close_btn_modal")) {
+    closeModal();
+  }
+  if (e.target.closest(".new_game_btn_modal")) {
+    startNewGame();
+  }
+});
 
+function checkGameCompletion() {
+  if ([...allCards].every((card) => card.classList.contains("is-flipped"))) {
+    modalOverlay.style.display = "flex";
+    modalText.textContent = `You completed the game in ${moves + 1} moves!`;
+  } else return;
+}
+
+function closeModal() {
+  modalOverlay.style.display = "none";
+}
+
+function startNewGame() {
+  closeModal();
+  allCards.forEach((card) => card.classList.remove("is-flipped"));
+  firstCard = null;
+  secondCard = null;
+  isBoardLocked = false;
+  moves = 0;
+  pairs = 0;
+  document.querySelector("#moves_value").textContent = "0";
+  document.querySelector("#pairs_value").textContent = "0 / 8";
+}
