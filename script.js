@@ -95,15 +95,16 @@ function createElement(tag, className, text) {
 let deck = [];
 
 function createDeck() {
-  cards.forEach(card => {
+  cards.forEach((card) => {
     deck.push(card);
     deck.push(card);
-  })
+  });
 }
 
 function shuffle(array) {
-
-  let m = array.length, t, i;
+  let m = array.length,
+    t,
+    i;
   while (m) {
     i = Math.floor(Math.random() * m--);
     t = array[m];
@@ -136,7 +137,50 @@ function renderCards(deck) {
     cardFrontImg.alt = deck[i].alt;
     cardBackImg.src = "./img/card-back.png";
     cardBackImg.alt = "";
+
+    card.addEventListener("click", flipCard)
   }
 }
 
 renderCards(deck);
+
+let firstCard = null;
+let secondCard = null;
+let isBoardLocked = false;
+
+function flipCard(e) {
+  const clickedCard = e.target.closest(".card");
+  if (isBoardLocked === true) return;
+
+  if (firstCard === null) {
+    firstCard = clickedCard;
+    clickedCard.classList.add("is-flipped");
+  } else if (firstCard !== null && secondCard === null) {
+    secondCard = clickedCard;
+    clickedCard.classList.add("is-flipped");
+
+    if (secondCard.dataset.id === firstCard.dataset.id) {
+        firstCard = null;
+        secondCard = null;
+        isBoardLocked = false;
+        checkGameCompletion();
+    } else {
+      isBoardLocked = true;
+      setTimeout(() => {
+        firstCard.classList.remove("is-flipped");
+        secondCard.classList.remove("is-flipped");
+        firstCard = null;
+        secondCard = null;
+        isBoardLocked = false;
+      }, 700);
+    }
+  }
+}
+const allCards = document.querySelectorAll(".card");
+
+function checkGameCompletion() {
+    if ([...allCards].every((card) => card.classList.contains("is-flipped"))) {
+      alert("finish!!!")
+    } else return;
+  }
+
