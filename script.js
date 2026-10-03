@@ -3,8 +3,14 @@ import { cards } from "./data.js";
 let firstCard = null;
 let secondCard = null;
 let isBoardLocked = false;
+let mismatchTimerId = null;
 let moves = 0;
 let pairs = 0;
+const dateToday = new Date().toLocaleDateString("ru-RU", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
 
 // CREATE STRUCTURE
 //header
@@ -36,6 +42,9 @@ headerBtnsWrapper.append(newGameBtn, leaderboardBtn);
 leaderboardBtn.append(trophyImg, leaderboardName);
 
 newGameBtn.addEventListener("click", startNewGame);
+leaderboardBtn.addEventListener("click", () => {
+  openModal(leaderboardOverlay);
+});
 
 //main
 const main = createElement("main", "main_wrapper");
@@ -84,14 +93,14 @@ movesBox.append(movesLabel, movesValue);
 pairsBox.append(pairsLabel, pairsValue);
 footer.append(movesBox, pairsBox);
 
-//modal
+//modal "finish"
 const modalOverlay = createElement("div", "modal_overlay");
 const modalContainer = createElement("div", "modal_container");
 const closeModalBtn = createElement("button", "close_modal_btn", "×");
 const trophyModalImg = createElement("img", "trophy_modal_img");
-const modalTitle = createElement("h1", "modal_title", "You found all pairs!");
+const modalTitle = createElement("h2", "modal_title", "You found all pairs!");
 const modalText = createElement(
-  "h1",
+  "p",
   "modal_text",
   "You completed the game in 0 moves!",
 );
@@ -103,6 +112,8 @@ const newGameBtnModal = createElement(
 );
 const closeBtnModal = createElement("button", "close_btn_modal", "Close");
 
+closeModalBtn.dataset.closeModal = "";
+closeBtnModal.dataset.closeModal = "";
 closeModalBtn.type = "button";
 closeBtnModal.type = "button";
 closeModalBtn.setAttribute("aria-label", "Close window");
@@ -121,7 +132,65 @@ modalContainer.append(
 );
 modalBtns.append(newGameBtnModal, closeBtnModal);
 
-document.body.append(header, main, footer, modalOverlay);
+//modal "leaderboard"
+const leaderboardOverlay = createElement("div", "leaderboard_overlay");
+const leaderboardContainer = createElement("div", "leaderboard_container");
+const closeLeaderboardBtnCross = createElement("button", "close_lb_btn", "×");
+const leaderboardImg = createElement("img", "leaderboard_img");
+const leaderboardTitle = createElement(
+  "h2",
+  "leaderboard_title",
+  "Leaderboard",
+);
+
+const leaderboardTable = createElement("table", "leaderboard_table");
+const thead = createElement("thead");
+const headerRow = createElement("tr");
+const thRank = createElement("th", "th_rank", "Rank");
+const thMoves = createElement("th", "th_moves", "Moves");
+const thDate = createElement("th", "th_date", "Date");
+
+const tbody = createElement("tbody");
+for (let i = 0; i < 10; i++) {
+  const resultRow = createElement("tr");
+  const tdRank = createElement("td", "td_rank", `${i + 1}`);
+  const tdMoves = createElement("td", "td_moves", "0");
+  const tdDate = createElement("td", "td_date", "00.00.0000");
+
+  tbody.append(resultRow);
+  resultRow.append(tdRank, tdMoves, tdDate);
+}
+
+thead.append(headerRow);
+headerRow.append(thRank, thMoves, thDate);
+leaderboardTable.append(thead, tbody);
+
+const closeLeaderboardBtn = createElement(
+  "button",
+  "close_leaderboard_btn",
+  "Close",
+);
+
+closeLeaderboardBtnCross.dataset.closeModal = "";
+closeLeaderboardBtn.dataset.closeModal = "";
+closeLeaderboardBtnCross.type = "button";
+closeLeaderboardBtn.type = "button";
+closeLeaderboardBtnCross.setAttribute("aria-label", "Close leaderboard");
+leaderboardImg.src = "./img/leaderboard-trophy-modal.png";
+leaderboardImg.alt =
+  "Golden trophy with a star, surrounded by glowing fruit icons.";
+
+leaderboardContainer.append(
+  closeLeaderboardBtnCross,
+  leaderboardImg,
+  leaderboardTitle,
+  leaderboardTable,
+  closeLeaderboardBtn,
+);
+
+leaderboardOverlay.append(leaderboardContainer);
+
+document.body.append(header, main, footer, modalOverlay, leaderboardOverlay);
 
 function createElement(tag, className, text) {
   const element = document.createElement(tag);
@@ -159,6 +228,17 @@ function shuffle(array) {
   }
 }
 
+function updateCards() {
+  allCards.forEach((card, index) => {
+    const cardData = deck[index];
+    const cardImage = card.querySelector(".card_front_img");
+
+    card.dataset.id = cardData.id;
+    cardImage.src = cardData.img;
+    cardImage.alt = cardData.alt;
+  });
+}
+
 createDeck();
 shuffle(deck);
 
@@ -192,76 +272,88 @@ renderCards(deck);
 
 function flipCard(e) {
   const clickedCard = e.target.closest(".card");
-  if (isBoardLocked === true) return;
+
+  if (isBoardLocked || clickedCard.classList.contains("is-flipped")) return;
+  clickedCard.classList.add("is-flipped");
 
   if (firstCard === null) {
     firstCard = clickedCard;
-    clickedCard.classList.add("is-flipped");
-  } else if (firstCard !== null && secondCard === null) {
-    secondCard = clickedCard;
-    clickedCard.classList.add("is-flipped");
-
-    if (secondCard.dataset.id === firstCard.dataset.id) {
-      firstCard = null;
-      secondCard = null;
-      isBoardLocked = false;
-      checkGameCompletion();
-      moves++;
-      document.querySelector("#moves_value").textContent = `${moves}`;
-      pairs++;
-      document.querySelector("#pairs_value").textContent = `${pairs} / 8`;
-    } else {
-      isBoardLocked = true;
-      moves++;
-      document.querySelector("#moves_value").textContent = `${moves}`;
-      setTimeout(() => {
-        firstCard.classList.remove("is-flipped");
-        secondCard.classList.remove("is-flipped");
-        firstCard = null;
-        secondCard = null;
-        isBoardLocked = false;
-      }, 700);
-    }
+    return;
   }
+
+  secondCard = clickedCard;
+
+  moves++;
+  movesValue.textContent = moves;
+
+  if (secondCard.dataset.id === firstCard.dataset.id) {
+    pairs++;
+    pairsValue.textContent = `${pairs} / ${cards.length}`;
+    firstCard = null;
+    secondCard = null;
+    checkGameCompletion();
+    return;
+  }
+  isBoardLocked = true;
+  mismatchTimerId = setTimeout(() => {
+    firstCard.classList.remove("is-flipped");
+    secondCard.classList.remove("is-flipped");
+    firstCard = null;
+    secondCard = null;
+    isBoardLocked = false;
+    mismatchTimerId = null;
+  }, 700);
 }
 
 const allCards = document.querySelectorAll(".card");
 
 //modal
-modalOverlay.addEventListener("click", (e) => {
-  if (!e.target.closest(".modal_container")) {
-    closeModal();
-  }
-  if (e.target.closest(".close_modal_btn")) {
-    closeModal();
-  }
-  if (e.target.closest(".close_btn_modal")) {
-    closeModal();
-  }
-  if (e.target.closest(".new_game_btn_modal")) {
-    startNewGame();
-  }
-});
+function setupModal(modal) {
+  modal.addEventListener("click", (event) => {
+    const closeButton = event.target.closest("[data-close-modal]");
+    const overlayClicked = event.target === modal;
 
-function checkGameCompletion() {
-  if ([...allCards].every((card) => card.classList.contains("is-flipped"))) {
-    modalOverlay.style.display = "flex";
-    modalText.textContent = `You completed the game in ${moves + 1} moves!`;
-  } else return;
+    if (closeButton || overlayClicked) {
+      closeModal(modal);
+    }
+  });
 }
 
-function closeModal() {
-  modalOverlay.style.display = "none";
+setupModal(modalOverlay);
+setupModal(leaderboardOverlay);
+newGameBtnModal.addEventListener("click", startNewGame);
+
+function checkGameCompletion() {
+  if (pairs === cards.length) {
+    openModal(modalOverlay);
+    modalText.textContent = `You completed the game in ${moves} moves!`;
+  }
+}
+
+function openModal(modal) {
+  modal.style.display = "flex";
+}
+
+function closeModal(modal) {
+  modal.style.display = "none";
 }
 
 function startNewGame() {
-  closeModal();
+  if (mismatchTimerId !== null) {
+    clearTimeout(mismatchTimerId);
+    mismatchTimerId = null;
+  }
+
+  closeModal(modalOverlay);
+  closeModal(leaderboardOverlay);
   allCards.forEach((card) => card.classList.remove("is-flipped"));
   firstCard = null;
   secondCard = null;
   isBoardLocked = false;
   moves = 0;
   pairs = 0;
-  document.querySelector("#moves_value").textContent = "0";
-  document.querySelector("#pairs_value").textContent = "0 / 8";
+  movesValue.textContent = "0";
+  pairsValue.textContent = `0 / ${cards.length}`;
+  shuffle(deck);
+  updateCards();
 }
