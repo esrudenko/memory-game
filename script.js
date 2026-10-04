@@ -320,6 +320,8 @@ function flipCard(e) {
     pairsValue.textContent = `${pairs} / ${cards.length}`;
     firstCard = null;
     secondCard = null;
+    firstCard.classList.add("is-matched");
+    secondCard.classList.add("is-matched");
     checkGameCompletion();
     return;
   }
