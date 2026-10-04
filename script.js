@@ -2,15 +2,16 @@ import { cards } from "./data.js";
 
 let firstCard = null;
 let secondCard = null;
-let isBoardLocked = false;
 let mismatchTimerId = null;
+
+let isBoardLocked = false;
+let isResultSaved = false;
+
 let moves = 0;
 let pairs = 0;
-const dateToday = new Date().toLocaleDateString("ru-RU", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-});
+
+const LEADERBOARD_KEY = "leaderboard";
+const leaderboardData = getLeaderboardData();
 
 // CREATE STRUCTURE
 //header
@@ -43,6 +44,7 @@ leaderboardBtn.append(trophyImg, leaderboardName);
 
 newGameBtn.addEventListener("click", startNewGame);
 leaderboardBtn.addEventListener("click", () => {
+  updateLeaderboardTable();
   openModal(leaderboardOverlay);
 });
 
@@ -80,7 +82,7 @@ const footer = createElement("footer", "footer_wrapper");
 
 const movesBox = createElement("div", "stat_item");
 const movesLabel = createElement("p", "stat_label", "MOVES");
-const movesValue = createElement("p", "stat_value", "00");
+const movesValue = createElement("p", "stat_value", "0");
 
 const pairsBox = createElement("div", "stat_item");
 const pairsLabel = createElement("p", "stat_label", "PAIRS");
@@ -143,28 +145,6 @@ const leaderboardTitle = createElement(
   "Leaderboard",
 );
 
-const leaderboardTable = createElement("table", "leaderboard_table");
-const thead = createElement("thead");
-const headerRow = createElement("tr");
-const thRank = createElement("th", "th_rank", "Rank");
-const thMoves = createElement("th", "th_moves", "Moves");
-const thDate = createElement("th", "th_date", "Date");
-
-const tbody = createElement("tbody");
-for (let i = 0; i < 10; i++) {
-  const resultRow = createElement("tr");
-  const tdRank = createElement("td", "td_rank", `${i + 1}`);
-  const tdMoves = createElement("td", "td_moves", "0");
-  const tdDate = createElement("td", "td_date", "00.00.0000");
-
-  tbody.append(resultRow);
-  resultRow.append(tdRank, tdMoves, tdDate);
-}
-
-thead.append(headerRow);
-headerRow.append(thRank, thMoves, thDate);
-leaderboardTable.append(thead, tbody);
-
 const closeLeaderboardBtn = createElement(
   "button",
   "close_leaderboard_btn",
@@ -180,17 +160,66 @@ leaderboardImg.src = "./img/leaderboard-trophy-modal.png";
 leaderboardImg.alt =
   "Golden trophy with a star, surrounded by glowing fruit icons.";
 
+leaderboardOverlay.append(leaderboardContainer);
+
 leaderboardContainer.append(
   closeLeaderboardBtnCross,
   leaderboardImg,
   leaderboardTitle,
-  leaderboardTable,
   closeLeaderboardBtn,
 );
 
-leaderboardOverlay.append(leaderboardContainer);
+updateLeaderboardTable();
 
 document.body.append(header, main, footer, modalOverlay, leaderboardOverlay);
+
+function updateLeaderboardTable() {
+  const oldContent = leaderboardContainer.querySelectorAll(
+    ".leaderboard_table, .text_no_results",
+  );
+
+  oldContent.forEach((element) => {
+    element.remove();
+  });
+
+  if (leaderboardData.length === 0) {
+    const textNoResults = createElement(
+      "p",
+      "text_no_results",
+      "No results yet.",
+    );
+
+    leaderboardContainer.insertBefore(textNoResults, closeLeaderboardBtn);
+    return;
+  }
+
+  const topResults = [...leaderboardData]
+    .sort((a, b) => a.moves - b.moves)
+    .slice(0, 10);
+
+  const leaderboardTable = createElement("table", "leaderboard_table");
+  const thead = createElement("thead");
+  const headerRow = createElement("tr");
+  const thRank = createElement("th", "th_rank", "Rank");
+  const thMoves = createElement("th", "th_moves", "Moves");
+  const thDate = createElement("th", "th_date", "Date");
+
+  const tbody = createElement("tbody");
+  for (let i = 0; i < topResults.length; i++) {
+    const resultRow = createElement("tr");
+    const tdRank = createElement("td", "td_rank", `${i + 1}`);
+    const tdMoves = createElement("td", "td_moves", `${topResults[i].moves}`);
+    const tdDate = createElement("td", "td_date", `${topResults[i].date}`);
+
+    tbody.append(resultRow);
+    resultRow.append(tdRank, tdMoves, tdDate);
+  }
+
+  thead.append(headerRow);
+  headerRow.append(thRank, thMoves, thDate);
+  leaderboardTable.append(thead, tbody);
+  closeLeaderboardBtn.before(leaderboardTable);
+}
 
 function createElement(tag, className, text) {
   const element = document.createElement(tag);
@@ -325,6 +354,8 @@ newGameBtnModal.addEventListener("click", startNewGame);
 
 function checkGameCompletion() {
   if (pairs === cards.length) {
+    saveResultToLeaderboard(moves);
+
     openModal(modalOverlay);
     modalText.textContent = `You completed the game in ${moves} moves!`;
   }
@@ -356,4 +387,23 @@ function startNewGame() {
   pairsValue.textContent = `0 / ${cards.length}`;
   shuffle(deck);
   updateCards();
+  isResultSaved = false;
+}
+
+//localstorage
+function getLeaderboardData() {
+  return JSON.parse(localStorage.getItem(LEADERBOARD_KEY)) || [];
+}
+
+function saveResultToLeaderboard(moves) {
+  if (isResultSaved) return;
+
+  const dateToday = new Date().toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+  leaderboardData.push({ moves, date: dateToday });
+  localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboardData));
+  isResultSaved = true;
 }
