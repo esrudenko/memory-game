@@ -53,7 +53,7 @@ Fruit Match is a cheerful memory game where you flip cards and find matching pai
    ```bash
    code .
    
-   If the code command is unavailable, open Visual Studio Code, select File → Open Folder, and choose the memory-game folder.
+If the code command is unavailable, open Visual Studio Code, select File → Open Folder, and choose the memory-game folder.
 
 6. Open index.html in Visual Studio Code.
 
