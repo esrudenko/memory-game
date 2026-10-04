@@ -29,10 +29,11 @@ Fruit Match is a cheerful memory game where you flip cards and find matching pai
    git clone https://github.com/esrudenko/memory-game.git
 
 2. Go to the project directory:
+   ```bash
    cd memory-game
 
-3. Switch to the memory-game branch:
+3. Switch to the memory-game branch:ё
+   ```bash
    git switch memory-game
 
 4. Run the project with a local server. For example, install the Live Server extension in Visual Studio Code, open index.html, and select Open with Live Server.
-```
