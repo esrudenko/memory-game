@@ -23,17 +23,38 @@ Fruit Match is a cheerful memory game where you flip cards and find matching pai
 
 ## Run Locally
 
-1. Clone the repository:
+### Prerequisites
+
+- [Git](https://git-scm.com/downloads) installed on your computer
+- [Visual Studio Code](https://code.visualstudio.com/) installed
+- The **Live Server** extension installed in Visual Studio Code
+
+### Steps
+
+1. Open a bash terminal or command prompt on your computer.
+
+2. Clone the repository:
 
    ```bash
    git clone https://github.com/esrudenko/memory-game.git
 
-2. Go to the project directory:
+3. Go to the project directory:
+
    ```bash
    cd memory-game
 
-3. Switch to the memory-game branch:ё
+4. Switch to the memory-game branch:
+
    ```bash
    git switch memory-game
 
-4. Run the project with a local server. For example, install the Live Server extension in Visual Studio Code, open index.html, and select Open with Live Server.
+5. Open the project folder in Visual Studio Code. You can use this command:
+
+   ```bash
+   code .
+   
+   If the code command is unavailable, open Visual Studio Code, select File → Open Folder, and choose the memory-game folder.
+
+6. Open index.html in Visual Studio Code.
+
+7. Right-click inside the editor and select Open with Live Server. The game will open in your default browser.
