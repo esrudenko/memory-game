@@ -356,6 +356,18 @@ setupModal(modalOverlay);
 setupModal(leaderboardOverlay);
 newGameBtnModal.addEventListener("click", startNewGame);
 
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && modalOverlay.style.display === "flex") {
+    closeModal(modalOverlay);
+  }
+  if (
+    event.key === "Escape" &&
+    leaderboardOverlay.style.display === "flex"
+  ) {
+    closeModal(leaderboardOverlay);
+  }
+});
+
 function checkGameCompletion() {
   if (pairs === cards.length) {
     saveResultToLeaderboard(moves);
@@ -411,7 +423,7 @@ function saveResultToLeaderboard(moves) {
   });
 
   leaderboardData.push({ moves, date: dateToday, timestamp: resultDate.getTime(), });
-  
+
   localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboardData));
   isResultSaved = true;
 }
