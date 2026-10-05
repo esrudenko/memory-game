@@ -194,7 +194,11 @@ function updateLeaderboardTable() {
   }
 
   const topResults = [...leaderboardData]
-    .sort((a, b) => a.moves - b.moves)
+    .sort((a, b) => {
+      if (a.moves !== b.moves) {
+        return a.moves - b.moves;
+    } return (a.timestamp ?? 0) - (b.timestamp ?? 0);
+  })
     .slice(0, 10);
 
   const leaderboardTable = createElement("table", "leaderboard_table");
@@ -320,8 +324,6 @@ function flipCard(e) {
     pairsValue.textContent = `${pairs} / ${cards.length}`;
     firstCard = null;
     secondCard = null;
-    firstCard.classList.add("is-matched");
-    secondCard.classList.add("is-matched");
     checkGameCompletion();
     return;
   }
@@ -400,12 +402,16 @@ function getLeaderboardData() {
 function saveResultToLeaderboard(moves) {
   if (isResultSaved) return;
 
+  const resultDate = new Date();
+
   const dateToday = new Date().toLocaleDateString("ru-RU", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   });
-  leaderboardData.push({ moves, date: dateToday });
+
+  leaderboardData.push({ moves, date: dateToday, timestamp: resultDate.getTime(), });
+  
   localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboardData));
   isResultSaved = true;
 }
